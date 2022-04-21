@@ -13,12 +13,40 @@ struct ContentView: View {
     @State private var tipPercentage = 20
     let tipPercentages = [10,15,20,25,0]
     
+    var totalPerPerson: Double {
+        let peopleCount = Double(numberOfPeople + 2)
+        let tipSelection = Double(tipPercentage)
+        
+        let tipValue = checkAmount / 100 * tipSelection
+        let grandTotal = checkAmount + tipValue
+        let amountPerPerson = grandTotal / peopleCount
+        
+        return amountPerPerson
+    }
+    
+    var totalWithTip: Double {
+        let tipSelection = Double(tipPercentage)
+        
+        let tipValue = checkAmount / 100 * tipSelection
+        let grandTotal = checkAmount + tipValue
+        
+        return grandTotal
+    }
+    
+    var dollarFormat: FloatingPointFormatStyle<Double>.Currency {
+        let currencyCode = Locale.current.currencyCode ?? "USD"
+        return FloatingPointFormatStyle<Double>.Currency(code:currencyCode )
+    }
+    
+    @FocusState private var amountIsFocused: Bool
+    
     var body: some View {
         NavigationView {
                 Form {
                     Section {
-                        TextField("Amount", value: $checkAmount, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                        TextField("Amount", value: $checkAmount, format: dollarFormat)
                             .keyboardType(.decimalPad)
+                            .focused($amountIsFocused)
 
                         Picker("Number of people", selection: $numberOfPeople) {
                             ForEach(2 ..< 100) {
@@ -37,8 +65,29 @@ struct ContentView: View {
                     } header: {
                         Text("How much tip do you want to leave?")
                     }
+                    Section {
+                        Text(totalPerPerson, format: dollarFormat)
+                    } header: {
+                        Text("Amount per person")
+                    }
+                    Section {
+                        Text(totalWithTip, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                    } header: {
+                        Text("Total With Tip")
+                    }
+                    
+                }
+                    
                 }.navigationTitle("WeSplit")
-            }
+                .toolbar{
+                    ToolbarItemGroup(placement: .keyboard){
+                        Spacer()
+                        Button("Done") {
+                            amountIsFocused = false
+                        }
+                    }
+                }
+            
     }
 }
 
